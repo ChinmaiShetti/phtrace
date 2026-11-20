@@ -1,0 +1,11 @@
+{
+  "name": "pharmatrace-e2e",
+  "private": true,
+  "type": "module",
+  "description": "Browser checks driven through installed Microsoft Edge (no browser download). Needs the API on :8000 and Vite on :5173 with fresh seed data.",
+  "scripts": {
+    "check": "node check.mjs shots",
+    "demo": "node demo.mjs shots"
+  },
+  "dependencies": { "playwright-core": "^1" }
+}

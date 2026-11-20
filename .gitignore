@@ -1,0 +1,32 @@
+# secrets
+.env
+
+# python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+
+# node
+node_modules/
+frontend/dist/
+
+# benchmark build output and large traces
+benchmark/build/
+benchmark/traces/
+benchmark/third_party/*/
+
+# tooling
+.deepeval/
+.claude/settings.local.json
+
+# launcher marker
+backend/.db_ready
+
+# caches and local outputs
+.pytest_cache/
+.ruff_cache/
+tools/e2e/node_modules/
+tools/e2e/shots/
+benchmark/*.log

@@ -1,0 +1,11 @@
+date: 2026-11-08T13:20:45Z
+compiler: g++ (GCC) 14.4.0
+cpu: AMD Ryzen 5 7535HS with Radeon Graphics
+cores: 12
+memory: 7533.2 MB
+kernel: 6.6.87.2-microsoft-standard-WSL2
+alex_commit: 4370da6aa8b509fdc9b0d2c49faa0624b0078589
+tlx_commit: 2dd63ab839909f0b43cd02108a1869c4670b2c8e
+reps: 3
+indexes: alexhb
+hb_args: --hb-migrate 1

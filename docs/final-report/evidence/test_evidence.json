@@ -1,0 +1,308 @@
+[
+  {
+    "tc": "TC01",
+    "module": "Product",
+    "title": "Register a valid product",
+    "action": "INSERT product 'Vaccine X', vaccine, 2.00-8.00 °C",
+    "expected": "Product saved; new product_id returned",
+    "actual": "Saved: product_id=4",
+    "status": "Pass"
+  },
+  {
+    "tc": "TC02",
+    "module": "Product",
+    "title": "Invalid temperature range rejected",
+    "action": "INSERT product with min_temp 8, max_temp 2",
+    "expected": "Rejected by CHECK (min_temp < max_temp)",
+    "actual": "CheckViolation: new row for relation \"product\" violates check constraint \"product_temp_range\" [constraint product_temp_range]",
+    "status": "Pass"
+  },
+  {
+    "tc": "TC03",
+    "module": "Batch",
+    "title": "Duplicate batch number rejected",
+    "action": "INSERT a second batch with number B1",
+    "expected": "Second insert rejected (UNIQUE)",
+    "actual": "UniqueViolation: duplicate key value violates unique constraint \"batch_batch_number_key\" [constraint batch_batch_number_key]",
+    "status": "Pass"
+  },
+  {
+    "tc": "TC04",
+    "module": "Batch",
+    "title": "Expiry before manufacture rejected",
+    "action": "INSERT batch mfg 2026-05-01, expiry 2026-04-01",
+    "expected": "Rejected by CHECK (expiry_date > manufacturing_date)",
+    "actual": "CheckViolation: new row for relation \"batch\" violates check constraint \"batch_dates\" [constraint batch_dates]",
+    "status": "Pass"
+  },
+  {
+    "tc": "TC05",
+    "module": "Batch",
+    "title": "Quantity boundary",
+    "action": "INSERT batch with initial_quantity 0, then 1",
+    "expected": "0 rejected; 1 accepted",
+    "actual": "Quantity 0 -> CheckViolation: new row for relation \"batch\" violates check constraint \"batch_initial_quantity_check\" [constraint batch_initial_quantity_check]. Quantity 1 -> saved (batch_id=7)",
+    "status": "Pass"
+  },
+  {
+    "tc": "TC06",
+    "module": "Product",
+    "title": "Product with batches cannot be deleted",
+    "action": "DELETE product 'Vaccine A' (has batches)",
+    "expected": "Rejected by foreign key (ON DELETE RESTRICT)",
+    "actual": "RestrictViolation: update or delete on table \"product\" violates RESTRICT setting of foreign key constraint \"batch_product_id_fkey\" on table \"batch\" [constraint batch_product_id_fkey]",
+    "status": "Pass"
+  },
+  {
+    "tc": "TC07",
+    "module": "Shipment",
+    "title": "Shipment with nonexistent vehicle rejected",
+    "action": "INSERT shipment with vehicle_id 999",
+    "expected": "Rejected by foreign key",
+    "actual": "ForeignKeyViolation: insert or update on table \"shipment\" violates foreign key constraint \"shipment_vehicle_id_fkey\" [constraint shipment_vehicle_id_fkey]",
+    "status": "Pass"
+  },
+  {
+    "tc": "TC08",
+    "module": "Shipment",
+    "title": "Same origin and destination rejected",
+    "action": "INSERT shipment Warehouse -> Warehouse",
+    "expected": "Rejected by CHECK (origin <> destination)",
+    "actual": "CheckViolation: new row for relation \"shipment\" violates check constraint \"shipment_route\" [constraint shipment_route]",
+    "status": "Pass"
+  },
+  {
+    "tc": "TC09",
+    "module": "Shipment",
+    "title": "Add batch to shipment",
+    "action": "INSERT shipment_batch (shipment, B1, 1000)",
+    "expected": "Row saved in SHIPMENT_BATCH",
+    "actual": "Saved: shipment 1 carries B1 x 1000",
+    "status": "Pass"
+  },
+  {
+    "tc": "TC10",
+    "module": "Shipment",
+    "title": "Same batch twice in one shipment rejected",
+    "action": "INSERT shipment_batch B1 again for the same shipment",
+    "expected": "Rejected (composite primary key)",
+    "actual": "UniqueViolation: duplicate key value violates unique constraint \"shipment_batch_pkey\" [constraint shipment_batch_pkey]",
+    "status": "Pass"
+  },
+  {
+    "tc": "TC11",
+    "module": "Transaction",
+    "title": "Dispatch a shipment",
+    "action": "SELECT dispatch_shipment() for B1 x400 + B2 x100 with sensor attached",
+    "expected": "Status in_transit; dispatch movements and departure checkpoint recorded; stock reduced",
+    "actual": "status=in_transit; dispatched movements=2; checkpoint=departure; B1 stock at origin 1000 -> 600",
+    "status": "Pass"
+  },
+  {
+    "tc": "TC12",
+    "module": "Transaction",
+    "title": "Partial failure rolls back the whole dispatch",
+    "action": "dispatch_shipment() with B1 x100 (in stock) and B2 x9999 (only 500 in stock)",
+    "expected": "Error raised; no movement kept for B1 or B2; status stays planned",
+    "actual": "RaiseException: Insufficient stock of batch B2: 500 at origin, 9999 requested. Afterwards: movements for this shipment=0, status=planned, B1 stock=1000 (unchanged)",
+    "status": "Pass"
+  },
+  {
+    "tc": "TC13",
+    "module": "Transaction",
+    "title": "Expired or quarantined batch cannot be dispatched",
+    "action": "dispatch_shipment() with an expired batch; then with a quarantined batch",
+    "expected": "Dispatch rejected with a message",
+    "actual": "Expired: RaiseException: Batch BEXP expired on 2026-11-07; it cannot be dispatched. Quarantined: RaiseException: Batch B1 is quarantined; it cannot be dispatched",
+    "status": "Pass"
+  },
+  {
+    "tc": "TC14",
+    "module": "Concurrency",
+    "title": "Two concurrent dispatches cannot oversell stock",
+    "action": "Two sessions each dispatch 800 of the 1,000 units of B1 at the same time",
+    "expected": "One commits, the other fails; stock never negative",
+    "actual": "Session 1 committed. Session 2 waited for the row lock (waiting=True), then: RaiseException: Insufficient stock of batch B1: 200 at origin, 800 requested. Final B1 stock at origin = 200",
+    "status": "Pass"
+  },
+  {
+    "tc": "TC15",
+    "module": "Transaction",
+    "title": "Receive a shipment",
+    "action": "dispatch_shipment() then receive_shipment() for B1 x300",
+    "expected": "Status delivered; stock moved to destination; sensor assignment closed",
+    "actual": "status=delivered; B1 stock at destination=300; open sensor assignments=0",
+    "status": "Pass"
+  },
+  {
+    "tc": "TC16",
+    "module": "Monitoring",
+    "title": "Overlapping sensor assignment rejected",
+    "action": "Assign sensor S1 to a second shipment while it is still attached to the first",
+    "expected": "Rejected (EXCLUDE constraint)",
+    "actual": "ExclusionViolation: conflicting key value violates exclusion constraint \"assignment_no_overlap\" [constraint assignment_no_overlap]",
+    "status": "Pass"
+  },
+  {
+    "tc": "TC17",
+    "module": "Monitoring",
+    "title": "Valid reading inside limits",
+    "action": "Reading 5.2 °C from S1 on a dispatched shipment",
+    "expected": "Reading saved as valid; no incident",
+    "actual": "reading_id=1 stored, quality=valid; incidents=0",
+    "status": "Pass"
+  },
+  {
+    "tc": "TC18",
+    "module": "Monitoring",
+    "title": "Reading outside limits raises an incident",
+    "action": "Readings 5.2 °C, then 8.6 °C (vaccine limit 8 °C)",
+    "expected": "Reading saved; incident created and linked to shipment, reading and batch",
+    "actual": "1 incident: id=1, type=temperature_excursion, shipment=1, source=automatic, status=open, severity=low; breaching reading linked=True",
+    "status": "Pass"
+  },
+  {
+    "tc": "TC19",
+    "module": "Monitoring",
+    "title": "Repeated breach appends to the same incident",
+    "action": "Readings 8.6 °C then 12.5 °C",
+    "expected": "Same open incident; severity raised; no new incident",
+    "actual": "incidents=1; severity low -> high; linked readings=2",
+    "status": "Pass"
+  },
+  {
+    "tc": "TC20",
+    "module": "Monitoring",
+    "title": "Duplicate reading rejected",
+    "action": "Same sensor and timestamp inserted twice",
+    "expected": "Rejected (UNIQUE sensor_id, recorded_at)",
+    "actual": "UniqueViolation: duplicate key value violates unique constraint \"reading_unique_per_sensor\" [constraint reading_unique_per_sensor]",
+    "status": "Pass"
+  },
+  {
+    "tc": "TC21",
+    "module": "Monitoring",
+    "title": "Future timestamp stored as invalid",
+    "action": "Reading 20 °C recorded 2 hours in the future",
+    "expected": "Stored with quality invalid; no incident",
+    "actual": "reading_id=1 stored, quality=invalid; incidents=0",
+    "status": "Pass"
+  },
+  {
+    "tc": "TC22",
+    "module": "Monitoring",
+    "title": "Missing readings appear in the data-quality report",
+    "action": "Readings at -45, -40, -35, -5, 0 min (5-minute sensor) -> a 30-minute hole",
+    "expected": "Gap shown in the sensor quality report",
+    "actual": "v_report_sensor_quality for S1: gaps=1, longest_gap_minutes=30",
+    "status": "Pass"
+  },
+  {
+    "tc": "TC23",
+    "module": "Monitoring",
+    "title": "Original reading values are protected",
+    "action": "UPDATE the temperature of a stored reading; DELETE it; UPDATE only its quality flag",
+    "expected": "Value change and delete rejected by trigger; quality flag change allowed",
+    "actual": "UPDATE value -> RaiseException: Original values of reading 1 cannot be changed; only quality_status may be updated. DELETE -> RaiseException: Sensor readings cannot be deleted (reading 1). Quality flag update -> allowed; temperature still 5.00",
+    "status": "Pass"
+  },
+  {
+    "tc": "TC24",
+    "module": "Incident",
+    "title": "Trace affected batches",
+    "action": "Reading 10.1 °C on a shipment carrying vaccine (2-8 °C) and syrup (2-25 °C)",
+    "expected": "Only the batches whose own limits were breached are linked",
+    "actual": "Linked batches: ['B1'] (B3 syrup, limit 25 °C, correctly not linked)",
+    "status": "Pass"
+  },
+  {
+    "tc": "TC25",
+    "module": "Security",
+    "title": "Login with a wrong password",
+    "action": "POST /api/auth/login with a valid email and a wrong password",
+    "expected": "401 Unauthorized; no token issued",
+    "actual": "Wrong password -> HTTP 401 {'detail': 'Incorrect email or password'}. Correct password -> HTTP 200 with a token",
+    "status": "Pass"
+  },
+  {
+    "tc": "TC26",
+    "module": "Security",
+    "title": "Unauthorised status change rejected (API and database)",
+    "action": "Operator calls POST /api/batches/B1/status 'released'; operator context runs the UPDATE directly in SQL",
+    "expected": "Rejected by the API (403) and by the database trigger",
+    "actual": "API -> HTTP 403 {'detail': 'Requires role: investigator, quality_manager'}. Direct SQL -> InsufficientPrivilege: Role operator may not change batch B1 from available to on_hold",
+    "status": "Pass"
+  },
+  {
+    "tc": "TC27",
+    "module": "Security",
+    "title": "SQL injection attempt",
+    "action": "GET /api/batches?q=' OR 1=1 --",
+    "expected": "Treated as plain text; no extra rows",
+    "actual": "All batches: 5 rows. Injection string -> HTTP 200, 0 rows (searched literally)",
+    "status": "Pass"
+  },
+  {
+    "tc": "TC28",
+    "module": "Security",
+    "title": "Application role cannot delete readings or write the audit log",
+    "action": "As pharmatrace_app: DELETE FROM sensor_reading; INSERT INTO audit_log",
+    "expected": "Permission denied",
+    "actual": "DELETE readings -> InsufficientPrivilege: permission denied for table sensor_reading. INSERT audit_log -> InsufficientPrivilege: permission denied for table audit_log",
+    "status": "Pass"
+  },
+  {
+    "tc": "TC29",
+    "module": "Investigation",
+    "title": "Complete an investigation",
+    "action": "Mark investigation completed without findings; then with findings",
+    "expected": "Rejected without findings; with findings completed_at is recorded",
+    "actual": "Without findings -> CheckViolation: new row for relation \"investigation\" violates check constraint \"investigation_findings\" [constraint investigation_findings]. With findings -> completed (completed_at recorded=True)",
+    "status": "Pass"
+  },
+  {
+    "tc": "TC30",
+    "module": "Investigation",
+    "title": "Closing an incident too early is refused",
+    "action": "Resolve the incident, then close it while a corrective action is pending (and batches unassessed)",
+    "expected": "Rejected with the reason shown",
+    "actual": "With a pending action -> RaiseException: Incident 1 has corrective actions that are not finished. With the action done but batches unassessed -> RaiseException: Incident 1 has affected batches that are not assessed",
+    "status": "Pass"
+  },
+  {
+    "tc": "TC31",
+    "module": "Investigation",
+    "title": "Close a fully resolved incident",
+    "action": "All work done; investigator tries to close; quality manager closes",
+    "expected": "Only the QM can close; status closed; audit entry",
+    "actual": "Investigator -> InsufficientPrivilege: Only a quality manager can close an incident. Quality manager -> closed. Latest audit entry: incident_status=closed, changed_by=Quality Manager",
+    "status": "Pass"
+  },
+  {
+    "tc": "TC32",
+    "module": "Reports",
+    "title": "Dashboard counts match base tables",
+    "action": "Compare v_dashboard with direct COUNT queries",
+    "expected": "Every dashboard number equals the matching SQL count",
+    "actual": "v_dashboard (active shipments, open incidents, batches under investigation) = (1, 1, 2); direct counts = (1, 1, 2)",
+    "status": "Pass"
+  },
+  {
+    "tc": "TC33",
+    "module": "Reports",
+    "title": "Incident report totals match",
+    "action": "SUM of v_report_incidents_by_type_severity vs COUNT(*) FROM incident",
+    "expected": "Report total equals the table count",
+    "actual": "Report total=1; COUNT(*) FROM incident=1",
+    "status": "Pass"
+  },
+  {
+    "tc": "TC34",
+    "module": "Forms",
+    "title": "Required-field and range validation",
+    "action": "POST /api/shipments without destination; POST /api/products with min 8 > max 2",
+    "expected": "422 with a message naming the problem; nothing saved",
+    "actual": "Shipment -> HTTP 422, missing fields ['destination_facility_id', 'expected_arrival']. Product -> HTTP 422, 'Value error, Minimum temperature must be below maximum temperature'. Shipments saved: 0",
+    "status": "Pass"
+  }
+]
