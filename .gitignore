@@ -1,5 +1,7 @@
 # secrets
 .env
+abc
+.lin
 
 # python
 .venv/
@@ -16,6 +18,7 @@ frontend/dist/
 benchmark/build/
 benchmark/traces/
 benchmark/third_party/*/
+abc.md
 
 # tooling
 .deepeval/
