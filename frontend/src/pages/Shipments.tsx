@@ -25,7 +25,7 @@ export default function ShipmentsPage() {
                { value: "in_transit", label: "In transit" }, { value: "delivered", label: "Delivered" }]} />
       <Section title={`${data?.length ?? 0} shipments`}>
         <DataTable rows={data} onRowClick={(r) => navigate(`/shipments/${r.shipment_id}`)} columns={[
-          { key: "id", title: "Shipment", render: (r) => <Text fw={600} size="sm">{code.shipment(r.shipment_id)}</Text> },
+          { key: "id", title: "Shipment", render: (r) => <Text span fw={600} size="sm">{code.shipment(r.shipment_id)}</Text> },
           { key: "origin_name", title: "From" },
           { key: "destination_name", title: "To" },
           { key: "registration_number", title: "Vehicle" },

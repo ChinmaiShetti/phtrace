@@ -73,7 +73,7 @@ export function DataTable<T extends Record<string, any>>({
   if (rows.length === 0) return <Text c="dimmed" size="sm">{empty}</Text>;
   return (
     <Table.ScrollContainer minWidth={minWidth}>
-      <Table striped highlightOnHover={!!onRowClick} verticalSpacing="xs" fz="sm">
+      <Table className="records" highlightOnHover={!!onRowClick} verticalSpacing="xs" fz="sm">
         <Table.Thead>
           <Table.Tr>
             {columns.map((c) => (
@@ -85,11 +85,19 @@ export function DataTable<T extends Record<string, any>>({
           {rows.map((r, i) => (
             <Table.Tr key={rowKey ? rowKey(r, i) : i} onClick={onRowClick ? () => onRowClick(r) : undefined}
               style={onRowClick ? { cursor: "pointer" } : undefined}>
-              {columns.map((c) => (
-                <Table.Td key={c.key} ta={c.align}>
-                  {c.render ? c.render(r) : formatCell(r[c.key])}
-                </Table.Td>
-              ))}
+              {columns.map((c, index) => {
+                const value = c.render ? c.render(r) : formatCell(r[c.key]);
+                return (
+                  <Table.Td key={c.key} ta={c.align}>
+                    {onRowClick && index === 0
+                      ? <button type="button" className="record-link" onClick={(event) => {
+                        event.stopPropagation();
+                        onRowClick(r);
+                      }}>{value}</button>
+                      : value}
+                  </Table.Td>
+                );
+              })}
             </Table.Tr>
           ))}
         </Table.Tbody>
@@ -111,7 +119,7 @@ export function PageHeader({ title, subtitle, actions }: { title: string; subtit
   return (
     <Group justify="space-between" align="flex-end" mb="lg">
       <div>
-        <Title order={2}>{title}</Title>
+        <Title className="page-title" order={2}>{title}</Title>
         {subtitle && <Text component="div" c="dimmed" size="sm" mt={4}>{subtitle}</Text>}
       </div>
       {actions && <Group gap="xs">{actions}</Group>}
@@ -121,7 +129,7 @@ export function PageHeader({ title, subtitle, actions }: { title: string; subtit
 
 export function Section({ title, children, actions }: { title: string; children: ReactNode; actions?: ReactNode }) {
   return (
-    <Card withBorder radius="md" padding="lg">
+    <Card className="section-card" withBorder radius="md" padding="lg">
       <Group justify="space-between" mb="sm">
         <Title order={4}>{title}</Title>
         {actions && <Group gap="xs">{actions}</Group>}

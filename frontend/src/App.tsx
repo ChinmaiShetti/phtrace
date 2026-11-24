@@ -1,24 +1,27 @@
-import { ActionIcon, AppShell, Badge, Burger, Center, Group, Loader, NavLink, Text, Tooltip, useMantineColorScheme } from "@mantine/core";
+import { lazy, Suspense } from "react";
+import { ActionIcon, AppShell, Badge, Burger, Center, Group, Loader, NavLink, Text, Tooltip, useComputedColorScheme, useMantineColorScheme } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import {
   IconActivityHeartbeat, IconAlertTriangle, IconBuildingWarehouse, IconChartBar, IconLayoutDashboard,
   IconLogout, IconMoon, IconPackage, IconPill, IconSun, IconTruckDelivery,
 } from "@tabler/icons-react";
-import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
+import { Link, Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "./auth";
+import { Brand } from "./Identity";
 import { label } from "./ui";
-import AdminPage from "./pages/Admin";
-import BatchesPage from "./pages/Batches";
-import BatchTracePage from "./pages/BatchTrace";
-import DashboardPage from "./pages/Dashboard";
-import IncidentDetailPage from "./pages/IncidentDetail";
-import IncidentsPage from "./pages/Incidents";
 import LoginPage from "./pages/Login";
-import MonitoringPage from "./pages/Monitoring";
-import ProductsPage from "./pages/Products";
-import ReportsPage from "./pages/Reports";
-import ShipmentDetailPage from "./pages/ShipmentDetail";
-import ShipmentsPage from "./pages/Shipments";
+
+const AdminPage = lazy(() => import("./pages/Admin"));
+const BatchesPage = lazy(() => import("./pages/Batches"));
+const BatchTracePage = lazy(() => import("./pages/BatchTrace"));
+const DashboardPage = lazy(() => import("./pages/Dashboard"));
+const IncidentDetailPage = lazy(() => import("./pages/IncidentDetail"));
+const IncidentsPage = lazy(() => import("./pages/Incidents"));
+const MonitoringPage = lazy(() => import("./pages/Monitoring"));
+const ProductsPage = lazy(() => import("./pages/Products"));
+const ReportsPage = lazy(() => import("./pages/Reports"));
+const ShipmentDetailPage = lazy(() => import("./pages/ShipmentDetail"));
+const ShipmentsPage = lazy(() => import("./pages/Shipments"));
 
 const NAV = [
   { to: "/", label: "Dashboard", icon: IconLayoutDashboard },
@@ -34,7 +37,8 @@ const NAV = [
 export default function App() {
   const { user, loading, logout } = useAuth();
   const [opened, { toggle, close }] = useDisclosure();
-  const { colorScheme, toggleColorScheme } = useMantineColorScheme();
+  const { toggleColorScheme } = useMantineColorScheme();
+  const colorScheme = useComputedColorScheme("light");
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -50,12 +54,12 @@ export default function App() {
   const active = (to: string) => (to === "/" ? location.pathname === "/" : location.pathname.startsWith(to));
 
   return (
-    <AppShell header={{ height: 56 }} navbar={{ width: 230, breakpoint: "sm", collapsed: { mobile: !opened } }} padding="lg">
+    <AppShell header={{ height: 64 }} navbar={{ width: 216, breakpoint: "sm", collapsed: { mobile: !opened } }} padding="lg" className="workspace">
       <AppShell.Header>
         <Group h="100%" px="md" justify="space-between">
           <Group gap="sm">
-            <Burger opened={opened} onClick={toggle} hiddenFrom="sm" size="sm" />
-            <Text fw={800} size="lg">Pharma<Text span c="cyan" inherit>Trace</Text></Text>
+            <Burger aria-label="Toggle navigation" aria-expanded={opened} opened={opened} onClick={toggle} hiddenFrom="sm" size="sm" />
+            <Brand />
             <Text c="dimmed" size="sm" visibleFrom="md">Cold-chain traceability</Text>
           </Group>
           <Group gap="sm">
@@ -74,27 +78,31 @@ export default function App() {
           </Group>
         </Group>
       </AppShell.Header>
-      <AppShell.Navbar p="sm">
+      <AppShell.Navbar p="sm" component="nav" aria-label="Main navigation">
         {NAV.map((n) => (
-          <NavLink key={n.to} label={n.label} leftSection={<n.icon size={18} />} active={active(n.to)}
-            onClick={() => { navigate(n.to); close(); }} style={{ borderRadius: 8 }} />
+          <NavLink key={n.to} component={Link} to={n.to} aria-current={active(n.to) ? "page" : undefined} label={n.label} leftSection={<n.icon size={18} />} active={active(n.to)}
+            onClick={close} />
         ))}
       </AppShell.Navbar>
       <AppShell.Main>
-        <Routes>
-          <Route path="/" element={<DashboardPage />} />
-          <Route path="/shipments" element={<ShipmentsPage />} />
-          <Route path="/shipments/:id" element={<ShipmentDetailPage />} />
-          <Route path="/batches" element={<BatchesPage />} />
-          <Route path="/batches/:id" element={<BatchTracePage />} />
-          <Route path="/products" element={<ProductsPage />} />
-          <Route path="/monitoring" element={<MonitoringPage />} />
-          <Route path="/incidents" element={<IncidentsPage />} />
-          <Route path="/incidents/:id" element={<IncidentDetailPage />} />
-          <Route path="/reports" element={<ReportsPage />} />
-          <Route path="/admin" element={<AdminPage />} />
-          <Route path="*" element={<Navigate to="/" />} />
-        </Routes>
+        <div className="page-view" key={location.pathname}>
+          <Suspense fallback={<Center mih={240}><Loader aria-label="Loading page" /></Center>}>
+            <Routes>
+              <Route path="/" element={<DashboardPage />} />
+              <Route path="/shipments" element={<ShipmentsPage />} />
+              <Route path="/shipments/:id" element={<ShipmentDetailPage />} />
+              <Route path="/batches" element={<BatchesPage />} />
+              <Route path="/batches/:id" element={<BatchTracePage />} />
+              <Route path="/products" element={<ProductsPage />} />
+              <Route path="/monitoring" element={<MonitoringPage />} />
+              <Route path="/incidents" element={<IncidentsPage />} />
+              <Route path="/incidents/:id" element={<IncidentDetailPage />} />
+              <Route path="/reports" element={<ReportsPage />} />
+              <Route path="/admin" element={<AdminPage />} />
+              <Route path="*" element={<Navigate to="/" />} />
+            </Routes>
+          </Suspense>
+        </div>
       </AppShell.Main>
     </AppShell>
   );

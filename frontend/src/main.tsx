@@ -2,6 +2,8 @@ import "@mantine/core/styles.css";
 import "@mantine/notifications/styles.css";
 import "@mantine/charts/styles.css";
 
+import "./design.css";
+
 import { createTheme, MantineProvider } from "@mantine/core";
 import { Notifications } from "@mantine/notifications";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -12,9 +14,12 @@ import App from "./App";
 import { AuthProvider } from "./auth";
 
 const theme = createTheme({
-  primaryColor: "cyan",
+  primaryColor: "tide",
+  colors: { tide: ["#e5faf6", "#c9f3ec", "#9ce5dc", "#6bd6ca", "#45c8bb", "#24b7aa", "#087b77", "#086c69", "#075d5b", "#094f50"] },
   fontFamily: "Inter, Segoe UI, system-ui, sans-serif",
   defaultRadius: "md",
+  headings: { fontFamily: "Bahnschrift, Segoe UI, sans-serif", fontWeight: "600" },
+  respectReducedMotion: true,
 });
 
 const queryClient = new QueryClient({

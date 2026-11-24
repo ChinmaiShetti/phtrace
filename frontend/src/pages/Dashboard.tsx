@@ -1,13 +1,13 @@
 import { Button, Card, Group, NumberInput, Select, SimpleGrid, Stack, Text } from "@mantine/core";
-import { IconFlame, IconRefresh } from "@tabler/icons-react";
+import { ThermalField } from "../Identity";
+import { IconArrowUpRight, IconFlame, IconRefresh, IconTruckDelivery } from "@tabler/icons-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAction, useApi } from "../api";
 import { useAuth } from "../auth";
-import { code, DataTable, fmtTime, label, PageHeader, Section, StatusBadge } from "../ui";
+import { code, DataTable, ErrorNote, fmtTime, label, PageHeader, Section, StatusBadge } from "../ui";
 
 const TILES: [string, string, string][] = [
-  ["active_shipments", "Active shipments", "blue"],
   ["open_incidents", "Open incidents", "red"],
   ["batches_under_investigation", "Batches under investigation", "orange"],
   ["batches_on_hold", "Batches on hold or quarantined", "orange"],
@@ -17,25 +17,31 @@ const TILES: [string, string, string][] = [
 ];
 
 export default function DashboardPage() {
-  const { data } = useApi<any>("/dashboard", 5000);
+  const { data, error } = useApi<any>("/dashboard", 5000);
   const navigate = useNavigate();
   const { can } = useAuth();
   const counts = data?.counts ?? {};
 
   return (
     <Stack>
-      <PageHeader title="Dashboard" subtitle="Every number below is computed live by SQL views (refreshes every 5 s)." />
-      <SimpleGrid cols={{ base: 2, sm: 3, lg: 4 }}>
-        {TILES.map(([key, title, color]) => (
-          <Card key={key} withBorder padding="md" radius="md">
-            <Text size="xs" c="dimmed" tt="uppercase" fw={600}>{title}</Text>
-            <Text fz={34} fw={800} c={counts[key] > 0 ? color : undefined}>{counts[key] ?? "–"}</Text>
-          </Card>
-        ))}
-      </SimpleGrid>
-
-      {can("admin") && <Simulator shipments={data?.active_shipments ?? []} />}
-
+      <PageHeader title="Dashboard" subtitle="Shipment activity and cold-chain exceptions." actions={
+        <span className="refresh-note"><IconRefresh size={14} /> Refreshes every 5 s</span>
+      } />
+      <ErrorNote error={error} />
+      <div className="overview">
+        <button className="fleet-card" onClick={() => navigate("/shipments")}>
+          <span className="fleet-label"><IconTruckDelivery size={19} /> Active shipments</span>
+          <strong>{counts.active_shipments ?? "–"}</strong>
+          <ThermalField />
+          <span className="fleet-link">View shipments <IconArrowUpRight size={16} /></span>
+        </button>
+        <div className="metrics">{TILES.map(([key, title, color]) => (
+          <div className="metric" key={key}>
+            <Text size="sm" c="dimmed">{title}</Text>
+            <Text className="metric-value" c={counts[key] > 0 ? `light-dark(var(--mantine-color-${color}-9), var(--mantine-color-${color}-3))` : undefined}>{counts[key] ?? "–"}</Text>
+          </div>
+        ))}</div>
+      </div>
       <SimpleGrid cols={{ base: 1, xl: 2 }}>
         <Section title="Shipments in transit">
           <DataTable rows={data?.active_shipments} onRowClick={(r) => navigate(`/shipments/${r.shipment_id}`)}
@@ -61,6 +67,7 @@ export default function DashboardPage() {
             ]} />
         </Section>
       </SimpleGrid>
+      {can("admin") && <Simulator shipments={data?.active_shipments ?? []} />}
     </Stack>
   );
 }
@@ -72,11 +79,11 @@ function Simulator({ shipments }: { shipments: any[] }) {
     "Refrigeration failure started: a reading arrives every 2.5 s. Watch the incidents list.");
   const backfill = useAction("POST", () => "/admin/backfill", "Sensor feed brought up to date");
   return (
-    <Card withBorder radius="md" padding="md" bg="var(--mantine-color-red-light)">
+    <Card withBorder radius="md" padding="md" className="simulator">
       <Group align="flex-end" wrap="wrap">
         <div style={{ flex: 1, minWidth: 220 }}>
-          <Text fw={700}>Demo: simulate a refrigeration failure</Text>
-          <Text size="sm" c="dimmed">Sends rising readings from the shipment's sensor; the database raises the incident.</Text>
+          <Text fw={700}>Refrigeration failure simulator</Text>
+          <Text size="sm" c="dimmed">Send rising temperature readings to demonstrate how an incident opens.</Text>
         </div>
         <Select label="Shipment" placeholder="In-transit shipment" w={260} value={shipment} onChange={setShipment}
           data={shipments.map((s) => ({ value: String(s.shipment_id),

@@ -24,7 +24,7 @@ export default function IncidentsPage() {
         data={[{ value: "all", label: "All" }, ...opts(["open", "investigating", "resolved", "closed"])]} />
       <Section title={`${data?.length ?? 0} incidents`}>
         <DataTable rows={data} onRowClick={(r) => navigate(`/incidents/${r.incident_id}`)} columns={[
-          { key: "incident_code", title: "Incident", render: (r) => <Text fw={600} size="sm">{r.incident_code}</Text> },
+          { key: "incident_code", title: "Incident", render: (r) => <Text span fw={600} size="sm">{r.incident_code}</Text> },
           { key: "incident_type", title: "Type", render: (r) => label(r.incident_type) },
           { key: "where", title: "Where", render: (r) => (r.shipment_id ? code.shipment(r.shipment_id) : r.facility_name) },
           { key: "detection_source", title: "Source", render: (r) => label(r.detection_source) },

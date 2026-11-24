@@ -1,0 +1,122 @@
+:root {
+  --ink: #112f38;
+  --petrol: #0b3841;
+  --frost: #edf4f4;
+  --mint: #a9eade;
+  --panel: #fff;
+  --rule: #d5e2e2;
+  --quiet: #526a70;
+  --display: Bahnschrift, "Segoe UI", sans-serif;
+  --mono: Consolas, monospace;
+}
+[data-mantine-color-scheme="dark"] {
+  --ink: #e5f3f1;
+  --frost: #112328;
+  --panel: #192e34;
+  --rule: #354b50;
+  --quiet: #b1c7c8;
+}
+body { background: var(--frost); color: var(--ink); }
+:focus-visible { outline: 3px solid #159f99; outline-offset: 3px; }
+.brand { display: inline-flex; align-items: center; gap: 9px; font: 650 22px/1 var(--display); letter-spacing: -.06em; }
+.brand-mark { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 11px 4px; background: var(--mint); color: var(--petrol); }
+.login-layout { display: grid; grid-template-columns: 1.15fr 1fr; min-height: 100svh; background: var(--panel); }
+.login-art, .fleet-card {
+  isolation: isolate; position: relative; overflow: hidden; color: #edf9f6;
+  background-color: var(--petrol);
+  background-image: linear-gradient(90deg, #a1d7d20c 1px, transparent 1px), linear-gradient(#a1d7d20c 1px, transparent 1px), radial-gradient(ellipse at 84% 72%, #236362, transparent 65%);
+  background-size: 42px 42px, 42px 42px, auto;
+}
+.login-art { display: flex; flex-direction: column; align-items: flex-start; padding: clamp(32px, 5vw, 88px); min-height: 630px; }
+.login-title { position: relative; z-index: 1; margin-top: clamp(60px, 11vh, 130px); }
+.login-title h1, .login-form h2 { margin: 0; font-family: var(--display); font-weight: 570; letter-spacing: -.065em; }
+.login-title h1 { font-size: clamp(55px, 6.3vw, 114px); line-height: .99; }
+.login-title h1 em { color: var(--mint); font-weight: 400; font-family: Georgia, serif; }
+.login-title p { max-width: 340px; line-height: 1.6; color: #d0e4e2; }
+.thermal-field { pointer-events: none; position: absolute; width: 100%; height: 48%; left: 0; bottom: 4%; z-index: -1; animation: field-arrive 1.15s cubic-bezier(.2,.8,.2,1) both; }
+.chain-steps { display: flex; align-items: center; gap: 10px; margin-top: auto; width: min(100%, 390px); font: 12px var(--mono); color: #c8e4df; }
+.chain-steps i { flex: 1; height: 1px; background: #67938e; }
+.login-panel { display: grid; place-items: center; padding: clamp(28px, 5vw, 80px); }
+.login-form { width: min(100%, 365px); animation: arrive .48s ease-out both; }
+.login-symbol { color: var(--quiet); margin-bottom: 16px; }
+.login-form h2 { font-size: 40px; line-height: 1.2; margin-bottom: 8px; }
+.mantine-InputWrapper-label { margin-bottom: 5px; }
+.login-form .mantine-Input-input { height: 44px; }
+.demo-accounts { margin: 32px 0 0; padding: 12px 0 0; border: 0; border-top: 1px solid var(--rule); }
+.demo-accounts legend { font-weight: 650; font-size: 14px; padding: 0 12px 0 0; }
+.demo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.demo-grid button { display: flex; justify-content: space-between; align-items: center; padding: 9px 12px; color: var(--ink); background: var(--panel); border: 1px solid var(--rule); border-radius: 8px; font: inherit; font-size: 13px; cursor: pointer; }
+.demo-grid button:hover, .demo-grid button[aria-pressed="true"] { border-color: #26988e; background: var(--frost); }
+.workspace .mantine-AppShell-header { border-color: var(--rule); background: var(--panel); }
+.workspace .mantine-AppShell-navbar { background: #123740; color: #d9ecec; border: 0; gap: 4px; padding-top: 22px; }
+.workspace .mantine-NavLink-root { color: #c6dada; border-radius: 8px; padding: 12px; flex-shrink: 0; transition: background .18s, color .18s; }
+.workspace .mantine-NavLink-root:hover { background: #204851; color: white; }
+.workspace .mantine-NavLink-root[data-active] { background: #c5efe7; color: #103e42; }
+.workspace .mantine-NavLink-root[data-active] .mantine-NavLink-label { font-weight: 650; }
+.page-view { width: min(100%, 1550px); margin: 0 auto; padding: clamp(0px, 1vw, 20px); animation: arrive .32s ease-out both; }
+.page-title { font-size: clamp(30px, 3vw, 46px); line-height: 1.1; letter-spacing: -.055em; }
+.section-card, .simulator, .metrics { min-width: 0; background: var(--panel); border: 1px solid var(--rule); border-radius: 14px; box-shadow: 0 3px 12px #143c4506; }
+.section-card h4 { letter-spacing: -.03em; }
+.records th { background: var(--frost); font-size: 12px; color: var(--quiet); }
+.records td, .records th { border-color: var(--rule); }
+.records td { font-variant-numeric: tabular-nums; }
+.refresh-note, .fleet-label, .fleet-link { display: inline-flex; align-items: center; gap: 8px; }
+.refresh-note { color: var(--quiet); font: 12px var(--mono); }
+.overview { display: grid; grid-template-columns: minmax(200px, .85fr) 2fr; gap: 16px; }
+.fleet-card { text-align: left; display: flex; flex-direction: column; align-items: flex-start; border: 0; border-radius: 14px; padding: 24px; cursor: pointer; font: inherit; min-height: 225px; }
+.fleet-card .thermal-field { height: 84%; width: 80%; left: 37%; bottom: 0; opacity: .8; transition: translate .4s ease; }
+.fleet-card:hover .thermal-field { translate: -5% 0; }
+.fleet-label { font-size: 14px; font-weight: 600; }
+.fleet-card strong { font: 500 64px/1.35 var(--display); }
+.fleet-link { margin-top: auto; color: var(--mint); font-size: 13px; }
+.metrics { display: grid; overflow: hidden; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--rule); }
+.metric { background: var(--panel); padding: clamp(12px, 1.3vw, 22px); display: flex; flex-direction: column; justify-content: space-between; }
+.metric-value { font: 550 32px/1.25 var(--display); font-variant-numeric: tabular-nums; }
+.mantine-Button-root { transition: transform .15s, background-color .15s; }
+.mantine-Button-root:active:not(:disabled) { transform: translateY(1px); }
+@keyframes arrive { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes field-arrive { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+@media (max-width: 60em) {
+  .overview { grid-template-columns: minmax(150px, .7fr) 2fr; }
+  .metric { padding: 12px; }
+}
+@media (max-width: 48em) {
+  .login-layout { grid-template-columns: 1fr; }
+  .login-art { min-height: 0; padding: 24px; }
+  .login-title { margin-top: 24px; }
+  .login-title h1 { font-size: 44px; }
+  .login-title h1 br { display: none; }
+  .login-title h1 em::before { content: " "; }
+  .login-title p { max-width: 75%; font-size: 14px; margin-bottom: 0; }
+  .login-art .thermal-field { left: 54%; width: 65%; bottom: 3%; height: 78%; opacity: .5; }
+  .chain-steps, .login-symbol { display: none; }
+  .login-form h2 { font-size: 34px; }
+  .workspace .mantine-AppShell-navbar { overflow-y: auto; }
+  .page-view { padding: 0; }
+}
+@media (max-width: 40em) {
+  .overview { grid-template-columns: 1fr; }
+  .fleet-card { min-height: 155px; padding: 18px; }
+  .fleet-card strong { font-size: 48px; }
+  .metrics { grid-template-columns: repeat(2,1fr); }
+  .login-title h1 { font-size: clamp(32px, 8vw, 44px); }
+  .login-panel { padding: 26px 24px; }
+  .workspace .mantine-AppShell-header > .mantine-Group { gap: 4px; padding-inline: 8px; }
+  .workspace .mantine-AppShell-header .mantine-Group { gap: 5px; }
+  .workspace .brand { font-size: 18px; gap: 5px; }
+  .workspace .brand-mark { width: 26px; height: 28px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+}
+.login-layout, .workspace { --mantine-color-dimmed: var(--quiet); }
+.login-art .thermal-field { bottom: 8%; }
+.fleet-card .thermal-field { mask-image: linear-gradient(90deg, transparent, black 32%); }
+.record-link { padding: 0; color: light-dark(#096b67, #a9eade); background: none; border: none; font: 600 0.88rem var(--mono); cursor: pointer; text-align: inherit; }
+.record-link:hover { text-decoration: underline; text-underline-offset: 3px; }
+.metric-value { animation: arrive .45s ease-out backwards; }
+.metric:nth-child(2n) .metric-value { animation-delay: .06s; }
+.metric:nth-child(3n) .metric-value { animation-delay: .12s; }
+@media (prefers-reduced-motion: reduce) {
+  .metric-value { animation: none; }
+}

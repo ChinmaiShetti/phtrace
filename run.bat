@@ -47,13 +47,16 @@ if not exist "backend\.db_ready" (
     echo built> .db_ready
     popd
 )
+pushd backend
+.venv\Scripts\python.exe -m scripts.check_db || (popd & goto :fail)
+popd
 if /i "%MODE%"=="setup" (echo Setup complete. Run run.bat to start PharmaTrace. & goto :end)
 
 rem ---- 5. start ------------------------------------------------------------------------
 echo Starting the API (port 8000) and the web app (port 5173) in two new windows...
-start "PharmaTrace API" cmd /k "cd /d "%~dp0backend" && uv run uvicorn app.main:app --port 8000"
-start "PharmaTrace Web" cmd /k "cd /d "%~dp0frontend" && npm run dev"
-timeout /t 6 /nobreak >nul
+start "PharmaTrace API" /D "%~dp0backend" cmd /k ".venv\Scripts\python.exe -m uvicorn app.main:app --port 8000"
+start "PharmaTrace Web" /D "%~dp0frontend" cmd /k "npm run dev -- --strictPort"
+powershell -NoProfile -Command "$ProgressPreference='SilentlyContinue'; foreach ($i in 1..30) { try { if ((Invoke-RestMethod http://localhost:5173/api/health -TimeoutSec 2).status -eq 'ok') { exit 0 } } catch {}; Start-Sleep -Seconds 1 }; exit 1" || (echo Cannot reach the API through the web app. Check the PharmaTrace API and Web windows. & goto :fail)
 start "" "http://localhost:5173"
 echo.
 echo PharmaTrace is running at http://localhost:5173   (API docs: http://localhost:8000/docs)

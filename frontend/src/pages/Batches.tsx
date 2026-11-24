@@ -25,7 +25,7 @@ export default function BatchesPage() {
         value={q} onChange={(e) => setQ(e.target.value)} />
       <Section title={`${data?.length ?? 0} batches`}>
         <DataTable rows={data} onRowClick={(r) => navigate(`/batches/${r.batch_id}`)} columns={[
-          { key: "batch_number", title: "Batch", render: (r) => <Text fw={600} size="sm">{r.batch_number}</Text> },
+          { key: "batch_number", title: "Batch", render: (r) => <Text span fw={600} size="sm">{r.batch_number}</Text> },
           { key: "product_name", title: "Product" },
           { key: "expiry_date", title: "Expiry", render: (r) => (
             <Text size="sm" c={r.is_expired ? "red" : r.days_to_expiry <= 60 ? "orange" : undefined}>
